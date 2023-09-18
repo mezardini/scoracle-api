@@ -3,7 +3,7 @@ from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Team, Fixture
-from .serializers import TeamSerializer, FixtureSerializer
+from .serializers import MatchPredictorSerializer
 from bs4 import BeautifulSoup
 import requests
 import pandas as pd
@@ -190,4 +190,44 @@ class LeaguePrediction(APIView):
 
  
 class SingleMatchPrediction(APIView):
-    pass
+    def post(self, request):
+        Home_Team = request.data.get("Home_Goal_At_Home")
+        Away_Team = request.data.get("Home_Goal_At_Home")
+        Home_Goal_At_Home = request.data.get("Home_Goal_At_Home")
+        Away_Goal_At_Away = request.data.get("Away_Goal_At_Away")
+        Home_League_Average = request.data.get("Home_League_Average")
+        Away_Conceded_Away = request.data.get("Away_Conceded_Away")
+        Home_Conceded_Home = request.data.get("Home_Conceded_Home")
+        Away_League_Average = request.data.get("Away_League_Average")
+        H1 = ("{:0.2f}".format(float(Home_Goal_At_Home)/Home_League_Average)) 
+        H2 = ("{:0.2f}".format(float(Away_Conceded_Away)/Home_League_Average)) 
+        Home_goal = ("{:0.2f}".format(float(H1) * float(H2) * float(Home_League_Average)))
+        A1 = ("{:0.2f}".format(float(Home_Conceded_Home)/Away_League_Average)) 
+        A2 = ("{:0.2f}".format(float(Away_Goal_At_Away)/Away_League_Average)) 
+        Away_goal = ("{:0.2f}".format(float(A1) * float(A2) * float(Away_League_Average)))
+        twomatch_goals_probability = ("{:0.2f}".format((1-poisson.cdf(k=2, mu=float(float(Home_goal) + float(Away_goal))))*100))
+        threematch_goals_probability = ("{:0.2f}".format((1-poisson.cdf(k=3, mu=float(float(Home_goal) + float(Away_goal))))*100))
+
+        lambda_home = float(Home_goal)
+        lambda_away = float(Away_goal)
+
+        score_probs = [[poisson.pmf(i, team_avg) for i in range(0, 10)] for team_avg in [lambda_home, lambda_away]]
+
+        outcomes = [[i, j] for i in range(0, 10) for j in range(0, 10)]
+
+        probs = [score_probs[0][i] * score_probs[1][j] for i, j in outcomes]
+
+        most_likely_outcome = outcomes[probs.index(max(probs))]
+
+        most_likely_prob_percent = max(probs) * 100
+        response_data = {
+            'Home_goal': Home_goal,
+            'Away_goal': Away_goal,
+            'most_likely_outcome': f"{Home_Team} {most_likely_outcome[0]} vs {Away_Team} {most_likely_outcome[1]}",
+            'most_likely_prob_percent': f"{most_likely_prob_percent:.1f}%",
+            'threematch_goals_probability': f"Over 2.5 prob: - {threematch_goals_probability}%",
+            'twomatch_goals_probability': f"Over 1.5 prob: - {twomatch_goals_probability}%"
+        }
+
+        return response_data
+
