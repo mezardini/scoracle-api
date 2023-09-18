@@ -150,11 +150,18 @@ class LeaguePrediction(APIView):
                     most_likely_outcome = outcomes[probs.index(max(probs))]
 
                     most_likely_prob_percent = max(probs) * 100
-                    print(f"{H3} - {A3}")
-                    print(f"{Home_goal} - {Away_goal}")
-                    print(f"{first_item} {most_likely_outcome[0]}  vs  {most_likely_outcome[1]} {second_item} prob- {most_likely_prob_percent:.1f}%")
-                    print(f"Over 2.5 prob: - {threematch_goals_probability}%")
-                    print(f"Over 1.5 prob: - {twomatch_goals_probability}%")
+                    response_data = {
+                        'H3': H3,
+                        'A3': A3,
+                        'Home_goal': Home_goal,
+                        'Away_goal': Away_goal,
+                        'most_likely_outcome': f"{first_item} {most_likely_outcome[0]} vs {second_item} {most_likely_outcome[1]}",
+                        'most_likely_prob_percent': f"{most_likely_prob_percent:.1f}%",
+                        'threematch_goals_probability': f"Over 2.5 prob: - {threematch_goals_probability}%",
+                        'twomatch_goals_probability': f"Over 1.5 prob: - {twomatch_goals_probability}%"
+                    }
+
+                    return response_data
                 # print(f"The most probable scoreline is Home {most_likely_outcome[0]} - {most_likely_outcome[1]} Away with probability {most_likely_prob_percent:.1f}%")
                 max_goals = 3  # maximum number of goals to consider
                 top_n = 5  # number of top scorelines to print
@@ -182,7 +189,5 @@ class LeaguePrediction(APIView):
             
 
  
-
-
 class SingleMatchPrediction(APIView):
     pass
