@@ -1,8 +1,8 @@
 from rest_framework import serializers
+from django.contrib.auth.models import User
 
-class GoalPredictionSerializer(serializers.Serializer):
-    file_name = serializers.CharField()
-    urlavgtable = serializers.CharField()
-    urlfixture = serializers.CharField()
-    Homeavg = serializers.FloatField()
-    Awayavg = serializers.FloatField()
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta(object):
+        model = User
+        fields = ['id','username', 'password', 'email']
